@@ -165,15 +165,16 @@ public class DownloadFileService extends IntentService {
         }
     }
 
-    private void downloadFile(InputStream reader, OutputStream toFileStream) throws IOException {
+    private void downloadFile(InputStream reader, OutputStream writer) throws IOException {
         byte[] buffer = new byte[BLOCK_SIZE];
-        int bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
+        int newBytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
 
-        while (bytesDownloaded != END_OF_FILE_CODE) {
-            toFileStream.write(buffer, 0, bytesDownloaded);
-            mBytesDownloaded += bytesDownloaded;
-            bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
-            Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", bytesDownloaded, mBytesDownloaded));
+        while (newBytesDownloaded != END_OF_FILE_CODE) {
+            writer.write(buffer, 0, newBytesDownloaded);
+            mBytesDownloaded += newBytesDownloaded;
+            newBytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
+
+            Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", newBytesDownloaded, mBytesDownloaded));
             mNotificationManager.notify(NOTIFICATION_ID, createNotification());
         }
     }
