@@ -1,7 +1,11 @@
 package com.example.lab4;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +23,8 @@ import java.net.URLConnection;
 import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 2137;
 
     private EditText mTextUrl;
     private Button mButtonReceiveInformation;
@@ -35,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         connectLayoutElementsWithFields();
         addListenerForReceivingFileInfo();
+        addListenerForDownloadingFile();
     }
 
     private void connectLayoutElementsWithFields() {
@@ -52,6 +59,37 @@ public class MainActivity extends AppCompatActivity {
             ReceiveFileInfoTask fileSizeTask = new ReceiveFileInfoTask();
             fileSizeTask.execute(mTextUrl.getText().toString());
         });
+    }
+
+    private void addListenerForDownloadingFile() {
+        mButtonDownloadFile.setOnClickListener(view -> {
+            Log.d(TAG, "Preparing for starting download file service");
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                DownloadFileService.startService(MainActivity.this, mTextUrl.getText().toString());
+                Log.d(TAG, "Download file service started");
+            } else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    Toast.makeText(MainActivity.this, "You should click the permission dude", Toast.LENGTH_SHORT).show();
+                }
+                ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case WRITE_EXTERNAL_STORAGE_REQUEST_CODE:
+                if (permissions.length > 0 && permissions[0].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    DownloadFileService.startService(MainActivity.this, mTextUrl.getText().toString());
+                } else {
+                    throw new UnsupportedOperationException("Permision not granted...");
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown request code...");
+        }
     }
 
     class ReceiveFileInfoTask extends AsyncTask<String, Void, FileInfo> {
