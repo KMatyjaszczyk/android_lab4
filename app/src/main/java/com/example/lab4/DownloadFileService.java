@@ -13,19 +13,19 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Locale;
-
-import javax.net.ssl.HttpsURLConnection;
 
 public class DownloadFileService extends IntentService {
     private static final String TAG = DownloadFileService.class.getSimpleName();
@@ -36,6 +36,7 @@ public class DownloadFileService extends IntentService {
     private static final String URL_KEY = "com.example.lab4.url";
     private static final String BYTES_DOWNLOADED_KEY = "com.example.lab4.bytes_downloaded";
     private static final int BLOCK_SIZE = 1024;
+    private static final int END_OF_FILE_CODE = -1;
 
     private NotificationManager mNotificationManager;
     private int mBytesDownloaded = 0;
@@ -51,10 +52,6 @@ public class DownloadFileService extends IntentService {
         super("DownloadFileService");
     }
 
-    /**
-     * @param name
-     * @deprecated
-     */
     public DownloadFileService(String name) {
         super(name);
     }
@@ -62,78 +59,46 @@ public class DownloadFileService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         mBytesDownloaded = 0;
-        prepareNotificationChannel();
+        prepareNotificationManager();
         startForeground(NOTIFICATION_ID, createNotification());
 
         if (intent != null) {
-            String action = intent.getAction();
-            if (ACTION_DOWNLOAD_FILE.equals(action)) {
-                String url = intent.getStringExtra(URL_KEY);
-                processDownloadingFile(url);
-
-            } else {
-                throw new UnsupportedOperationException("Wrong action provided");
-            }
+            prepareForDownloadingFile(intent);
         }
     }
 
-    private void processDownloadingFile(String urlString) {
-        FileOutputStream toFileStream = null;
-        URLConnection connection = null;
-        try {
-            URL url = new URL(urlString);
-            File tempFile = new File(url.getFile());
-            File outputFile = new File(getFilePath(tempFile.getName()));
-            if (outputFile.exists()) {
-                outputFile.delete();
-            }
-
-            InputStream fromWebStream;
-            connection = (HttpsURLConnection) url.openConnection();
-
-            DataInputStream reader = new DataInputStream(connection.getInputStream());
-            toFileStream = new FileOutputStream(outputFile.getPath());
-
-            byte[] buffer = new byte[BLOCK_SIZE];
-            int bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
-            while (bytesDownloaded != -1) {
-                toFileStream.write(buffer, 0, bytesDownloaded);
-                mBytesDownloaded += bytesDownloaded;
-                bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
-                Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", bytesDownloaded, mBytesDownloaded));
-                mNotificationManager.notify(NOTIFICATION_ID, createNotification());
-            }
-
-        } catch (IOException e) {
-            Log.e(TAG, "Exception during file download");
-            e.printStackTrace();
+    private void prepareNotificationManager() {
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String appName = getString(R.string.app_name);
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID, appName, NotificationManager.IMPORTANCE_LOW);
+            mNotificationManager.createNotificationChannel(notificationChannel);
         }
-
-
-    }
-
-    private String getFilePath(String fileName) {
-        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
-        File downloadsDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        File newFile = new File(downloadsDirectory, fileName);
-        return newFile.getPath();
     }
 
     private Notification createNotification() {
+        PendingIntent pendingIntent = prepareNotificationIntents();
+        return buildNotification(pendingIntent);
+    }
+
+    private PendingIntent prepareNotificationIntents() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.putExtra(BYTES_DOWNLOADED_KEY, mBytesDownloaded);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(notificationIntent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        return stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 
+    private Notification buildNotification(PendingIntent pendingIntent) {
         Notification.Builder notificationBuilder = new Notification.Builder(this);
         notificationBuilder
                 .setContentTitle("Downloading file")
                 .setContentText(String.format(Locale.getDefault(),"%d bytes downloaded", mBytesDownloaded))
                 .setContentIntent(pendingIntent)
-                // TODO setProgress() may be implemented
+                // TODO setProgress() may be implemented - it may be hard because of -1 as result of connection.getContentLength()
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setWhen(System.currentTimeMillis())
                 .setPriority(Notification.PRIORITY_HIGH)
@@ -146,13 +111,75 @@ public class DownloadFileService extends IntentService {
         return notificationBuilder.build();
     }
 
-    private void prepareNotificationChannel() {
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String appName = getString(R.string.app_name);
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
-                    appName, NotificationManager.IMPORTANCE_LOW);
-            mNotificationManager.createNotificationChannel(notificationChannel);
+    private void prepareForDownloadingFile(@NonNull Intent intent) {
+        String action = intent.getAction();
+
+        if (ACTION_DOWNLOAD_FILE.equals(action)) {
+            String url = intent.getStringExtra(URL_KEY);
+            processDownloadingFile(url);
+            return;
         }
+        throw new UnsupportedOperationException("Wrong action provided");
+    }
+
+    private void processDownloadingFile(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            InputStream reader = receiveReader(url);
+            OutputStream writer = receiveWriter(url);
+
+            downloadFile(reader, writer);
+        } catch (IOException e) {
+            handleFileDownloadException(e);
+        }
+    }
+
+    @NonNull
+    private InputStream receiveReader(URL url) throws IOException {
+        URLConnection connection = url.openConnection();
+        return new DataInputStream(connection.getInputStream());
+    }
+
+    @NonNull
+    private OutputStream receiveWriter(URL url) throws FileNotFoundException {
+        File tempFile = new File(url.getFile());
+        File outputFile = new File(getFilePath(tempFile.getName()));
+
+        if (outputFile.exists()) {
+            deletePreviousFile(outputFile);
+        }
+        return new FileOutputStream(outputFile.getPath());
+    }
+
+    private String getFilePath(String fileName) {
+        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
+        File downloadsDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        File newFile = new File(downloadsDirectory, fileName);
+        return newFile.getPath();
+    }
+
+    private void deletePreviousFile(File outputFile) {
+        boolean fileWasDeleted = outputFile.delete();
+        if (fileWasDeleted) {
+            Log.d(TAG, String.format(Locale.getDefault(), "Previous version of file %s was deleted", outputFile.getName()));
+        }
+    }
+
+    private void downloadFile(InputStream reader, OutputStream toFileStream) throws IOException {
+        byte[] buffer = new byte[BLOCK_SIZE];
+        int bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
+
+        while (bytesDownloaded != END_OF_FILE_CODE) {
+            toFileStream.write(buffer, 0, bytesDownloaded);
+            mBytesDownloaded += bytesDownloaded;
+            bytesDownloaded = reader.read(buffer, 0, BLOCK_SIZE);
+            Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", bytesDownloaded, mBytesDownloaded));
+            mNotificationManager.notify(NOTIFICATION_ID, createNotification());
+        }
+    }
+
+    private void handleFileDownloadException(IOException e) {
+        Log.e(TAG, "Exception during file download");
+        e.printStackTrace();
     }
 }

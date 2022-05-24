@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -62,34 +63,65 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addListenerForDownloadingFile() {
-        mButtonDownloadFile.setOnClickListener(view -> {
-            Log.d(TAG, "Preparing for starting download file service");
-            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                DownloadFileService.startService(MainActivity.this, mTextUrl.getText().toString());
-                Log.d(TAG, "Download file service started");
-            } else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(MainActivity.this, "You should click the permission dude", Toast.LENGTH_SHORT).show();
-                }
-                ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
-            }
-        });
+        mButtonDownloadFile.setOnClickListener(this::processStartingDownloadFileService);
+    }
+
+    private void processStartingDownloadFileService(View view) {
+        Log.d(TAG, "Prepare for starting download file service");
+        boolean appHasWriteExternalStoragePermission =
+                ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED;
+
+        if (appHasWriteExternalStoragePermission) {
+            startDownloadFileService();
+        } else {
+            processAskingForPermission();
+        }
+    }
+
+    private void processAskingForPermission() {
+        boolean appShouldAskForWriteExternalStoragePermission = ActivityCompat.shouldShowRequestPermissionRationale(
+                MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (appShouldAskForWriteExternalStoragePermission) {
+            CharSequence message = getResources().getText(R.string.askForWriteExternalStoragePermissionMessage);
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+        }
+        askForWriteExternalStoragePermission();
+    }
+
+    private void askForWriteExternalStoragePermission() {
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case WRITE_EXTERNAL_STORAGE_REQUEST_CODE:
-                if (permissions.length > 0 && permissions[0].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    DownloadFileService.startService(MainActivity.this, mTextUrl.getText().toString());
-                } else {
-                    throw new UnsupportedOperationException("Permision not granted...");
-                }
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown request code...");
+
+        if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
+            startDownloadFileServiceIfPossible(permissions, grantResults);
+            return;
         }
+        throw new UnsupportedOperationException("Unknown request code...");
+    }
+
+    private void startDownloadFileServiceIfPossible(@NonNull String[] permissions, @NonNull int[] grantResults) {
+        boolean appHasWriteExternalStoragePermission = permissions.length > 0
+                && permissions[0].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+        if (appHasWriteExternalStoragePermission) {
+            startDownloadFileService();
+            return;
+        }
+        throw new UnsupportedOperationException("Permission not granted...");
+    }
+
+    private void startDownloadFileService() {
+        DownloadFileService.startService(MainActivity.this, mTextUrl.getText().toString());
+        Log.d(TAG, "Download file service started");
     }
 
     class ReceiveFileInfoTask extends AsyncTask<String, Void, FileInfo> {
