@@ -123,14 +123,18 @@ public class DownloadFileService extends IntentService {
     }
 
     private void processDownloadingFile(String urlString) {
+        InputStream reader = null;
+        OutputStream writer = null;
         try {
             URL url = new URL(urlString);
-            InputStream reader = receiveReader(url);
-            OutputStream writer = receiveWriter(url);
+            reader = receiveReader(url);
+            writer = receiveWriter(url);
 
             downloadFile(reader, writer);
         } catch (IOException e) {
             handleFileDownloadException(e);
+        } finally {
+            tryToCloseStreams(reader, writer);
         }
     }
 
@@ -179,6 +183,24 @@ public class DownloadFileService extends IntentService {
 
     private void handleFileDownloadException(IOException e) {
         Log.e(TAG, "Exception during file download");
+        e.printStackTrace();
+    }
+
+    private void tryToCloseStreams(InputStream reader, OutputStream writer) {
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.close();
+            }
+        } catch (IOException e) {
+            handleStreamClosingException(e);
+        }
+    }
+
+    private void handleStreamClosingException(IOException e) {
+        Log.e(TAG, "Exception during closing stream");
         e.printStackTrace();
     }
 }
