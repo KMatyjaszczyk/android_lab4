@@ -143,7 +143,7 @@ public class DownloadFileService extends IntentService {
     @NonNull
     private OutputStream receiveWriter(URL url) throws FileNotFoundException {
         File tempFile = new File(url.getFile());
-        File outputFile = new File(getFilePath(tempFile.getName()));
+        File outputFile = new File(getPathname(tempFile));
 
         if (outputFile.exists()) {
             deletePreviousFile(outputFile);
@@ -151,11 +151,9 @@ public class DownloadFileService extends IntentService {
         return new FileOutputStream(outputFile.getPath());
     }
 
-    private String getFilePath(String fileName) {
-        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
-        File downloadsDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        File newFile = new File(downloadsDirectory, fileName);
-        return newFile.getPath();
+    @NonNull
+    private String getPathname(File fileName) {
+        return Environment.getExternalStorageDirectory() + File.separator + fileName.getName();
     }
 
     private void deletePreviousFile(File outputFile) {
