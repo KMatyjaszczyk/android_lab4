@@ -36,9 +36,11 @@ public class DownloadFileService extends IntentService {
     private static final String URL_KEY = "com.example.lab4.url";
     private static final String BYTES_DOWNLOADED_KEY = "com.example.lab4.bytes_downloaded";
     private static final int BLOCK_SIZE = 1024;
+    private static final int CONTENT_LENGTH_NOT_FOUND_CODE = -1;
     private static final int END_OF_FILE_CODE = -1;
 
     private NotificationManager mNotificationManager;
+    private int mTotalFileSize = 0;
     private int mBytesDownloaded = 0;
 
     public static void startService(Context context, String url) {
@@ -98,7 +100,7 @@ public class DownloadFileService extends IntentService {
                 .setContentTitle("Downloading file")
                 .setContentText(String.format(Locale.getDefault(),"%d bytes downloaded", mBytesDownloaded))
                 .setContentIntent(pendingIntent)
-                // TODO setProgress() may be implemented - it may be hard because of -1 as result of connection.getContentLength()
+                .setProgress(mTotalFileSize == CONTENT_LENGTH_NOT_FOUND_CODE ? mBytesDownloaded : mTotalFileSize, mBytesDownloaded, false)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setWhen(System.currentTimeMillis())
                 .setPriority(Notification.PRIORITY_HIGH)
@@ -141,6 +143,7 @@ public class DownloadFileService extends IntentService {
     @NonNull
     private InputStream receiveReader(URL url) throws IOException {
         URLConnection connection = url.openConnection();
+        mTotalFileSize = connection.getContentLength();
         return new DataInputStream(connection.getInputStream());
     }
 

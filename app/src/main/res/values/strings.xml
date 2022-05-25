@@ -2,7 +2,8 @@
     <string name="app_name">Lab4</string>
     <string name="textViewUrl">Address</string>
 <!--    <string name="exampleResourceUrl">https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.36.tar.xz</string>-->
-    <string name="exampleResourceUrl">https://filesamples.com/samples/video/avi/sample_960x400_ocean_with_audio.avi</string>
+<!--    <string name="exampleResourceUrl">https://filesamples.com/samples/video/avi/sample_960x400_ocean_with_audio.avi</string>-->
+    <string name="exampleResourceUrl">https://cs.pollub.pl/wp-content/uploads/2020/09/REGULAMIN-Platformy-e-learningowej-Wydzia%C5%82u-Elektrotechniki-i-Informatyki-Politechniki-Lubelskiej.pdf</string>
     <string name="buttonReceiveInformation">RECEIVE INFORMATION</string>
     <string name="textViewFileSize">File size:</string>
     <string name="textViewFileType">File type:</string>
