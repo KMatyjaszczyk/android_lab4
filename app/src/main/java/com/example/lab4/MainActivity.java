@@ -5,6 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonDownloadFile;
     private TextView mBytesDownloadedValue;
     private ProgressBar mBytesDownloadedProgress;
+
+    private BroadcastReceiver mFileInfoBroadcastReceiver = new FileInfoBroadcastReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,5 +167,29 @@ public class MainActivity extends AppCompatActivity {
             mFileSizeValue.setText(String.valueOf(result.getSize()));
             mFileTypeValue.setText(result.getType());
         }
+    }
+
+    class FileInfoBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ProgressInfo progressInfo = intent.getParcelableExtra(DownloadFileService.FILE_INFO_KEY);
+            Log.d(TAG, "Received broadcast with ProgressInfo: " + progressInfo.bytesDownloaded);
+            mBytesDownloadedValue.setText(String.valueOf(progressInfo.bytesDownloaded));
+            mBytesDownloadedProgress.setMax(progressInfo.totalFileSize);
+            mBytesDownloadedProgress.setProgress(progressInfo.bytesDownloaded);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(mFileInfoBroadcastReceiver, new IntentFilter(DownloadFileService.ACTION_BROADCAST));
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(mFileInfoBroadcastReceiver);
+        super.onStop();
     }
 }

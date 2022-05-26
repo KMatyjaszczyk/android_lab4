@@ -28,6 +28,9 @@ import java.net.URLConnection;
 import java.util.Locale;
 
 public class DownloadFileService extends IntentService {
+    public static final String FILE_INFO_KEY = "com.example.lab4.file_info";
+    public static final String ACTION_BROADCAST = "com.example.lab4.broadcast";
+
     private static final String TAG = DownloadFileService.class.getSimpleName();
     private static final String ACTION_DOWNLOAD_FILE = "com.example.lab4.download_file";
     private static final String NOTIFICATION_CHANNEL_ID = "com.example.lab4.notification_channel";
@@ -181,7 +184,15 @@ public class DownloadFileService extends IntentService {
 
             Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", newBytesDownloaded, mBytesDownloaded));
             mNotificationManager.notify(NOTIFICATION_ID, createNotification());
+            processSendingBroadcast("in progress");
         }
+    }
+
+    private void processSendingBroadcast(String status) {
+        ProgressInfo progressInfo = new ProgressInfo(mBytesDownloaded, mTotalFileSize, status);
+        Intent intent = new Intent(ACTION_BROADCAST);
+        intent.putExtra(FILE_INFO_KEY, progressInfo);
+        sendBroadcast(intent);
     }
 
     private void handleFileDownloadException(IOException e) {
