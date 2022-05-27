@@ -10,5 +10,7 @@
     <string name="_0">0</string>
     <string name="buttonDownloadFile">DOWNLOAD FILE</string>
     <string name="textViewBytesDownloaded">Bytes downloaded:</string>
+    <string name="fileDownloadedBytesValue">File downloaded</string>
     <string name="askForWriteExternalStoragePermissionMessage">You should click the permission dude</string>
+    <string name="fileHasBeenDownloadedMessage">File has been successfully downloaded</string>
 </resources>

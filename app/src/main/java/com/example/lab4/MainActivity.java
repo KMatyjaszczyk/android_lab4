@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String FILE_TYPE_CODE = "com.example.lab4.file_type";
     private static final String BYTES_DOWNLOADED_CODE = "com.example.lab4.file_bytes_downloaded";
 
+    private final BroadcastReceiver mFileInfoBroadcastReceiver = new FileInfoBroadcastReceiver();
+
     private EditText mTextUrl;
     private Button mButtonReceiveInformation;
     private TextView mFileSizeValue;
@@ -42,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonDownloadFile;
     private TextView mBytesDownloadedValue;
     private ProgressBar mBytesDownloadedProgress;
-
-    private BroadcastReceiver mFileInfoBroadcastReceiver = new FileInfoBroadcastReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,9 +179,27 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             ProgressInfo progressInfo = intent.getParcelableExtra(DownloadFileService.FILE_INFO_KEY);
             Log.d(TAG, "Received broadcast with ProgressInfo: " + progressInfo.bytesDownloaded);
-            mBytesDownloadedValue.setText(String.valueOf(progressInfo.bytesDownloaded));
-            mBytesDownloadedProgress.setMax(progressInfo.totalFileSize);
-            mBytesDownloadedProgress.setProgress(progressInfo.bytesDownloaded);
+
+            if (DownloadFileService.FILE_STATUS_IN_PROGRESS.equals(progressInfo.status)) {
+                mBytesDownloadedValue.setText(String.valueOf(progressInfo.bytesDownloaded));
+                mBytesDownloadedProgress.setMax(progressInfo.totalFileSize);
+                mBytesDownloadedProgress.setProgress(progressInfo.bytesDownloaded);
+                return;
+            }
+
+            if (DownloadFileService.FILE_STATUS_FINISHED.equals(progressInfo.status)) {
+                String fileDownloadedBytesValue = getResources().getString(R.string.fileDownloadedBytesValue);
+                String toastMessage = getResources().getString(R.string.fileHasBeenDownloadedMessage);
+
+                mBytesDownloadedValue.setText(fileDownloadedBytesValue);
+                mBytesDownloadedProgress.setMax(0);
+                mBytesDownloadedProgress.setProgress(0);
+
+                Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            throw new UnsupportedOperationException("Unknown status type");
         }
     }
 

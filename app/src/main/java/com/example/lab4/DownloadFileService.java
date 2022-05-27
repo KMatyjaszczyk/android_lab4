@@ -31,6 +31,9 @@ public class DownloadFileService extends IntentService {
     public static final String FILE_INFO_KEY = "com.example.lab4.file_info";
     public static final String ACTION_BROADCAST = "com.example.lab4.broadcast";
 
+    public static final String FILE_STATUS_IN_PROGRESS = "in progress";
+    public static final String FILE_STATUS_FINISHED = "finished";
+
     private static final String TAG = DownloadFileService.class.getSimpleName();
     private static final String ACTION_DOWNLOAD_FILE = "com.example.lab4.download_file";
     private static final String NOTIFICATION_CHANNEL_ID = "com.example.lab4.notification_channel";
@@ -184,8 +187,9 @@ public class DownloadFileService extends IntentService {
 
             Log.d(TAG, String.format("Downloaded portion of %d bytes. Bytes downloaded: %d", newBytesDownloaded, mBytesDownloaded));
             mNotificationManager.notify(NOTIFICATION_ID, createNotification());
-            processSendingBroadcast("in progress");
+            processSendingBroadcast(FILE_STATUS_IN_PROGRESS);
         }
+        processSendingBroadcast(FILE_STATUS_FINISHED);
     }
 
     private void processSendingBroadcast(String status) {
