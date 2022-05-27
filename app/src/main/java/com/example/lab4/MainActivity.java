@@ -31,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 2137;
 
+    private static final String FILE_SIZE_CODE = "com.example.lab4.file_size";
+    private static final String FILE_TYPE_CODE = "com.example.lab4.file_type";
+    private static final String BYTES_DOWNLOADED_CODE = "com.example.lab4.file_bytes_downloaded";
+
     private EditText mTextUrl;
     private Button mButtonReceiveInformation;
     private TextView mFileSizeValue;
@@ -191,5 +195,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         unregisterReceiver(mFileInfoBroadcastReceiver);
         super.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString(FILE_SIZE_CODE, mFileSizeValue.getText().toString());
+        outState.putString(FILE_TYPE_CODE, mFileTypeValue.getText().toString());
+        outState.putString(BYTES_DOWNLOADED_CODE, mBytesDownloadedValue.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        String fileSize = savedInstanceState.getString(FILE_SIZE_CODE);
+        String fileType = savedInstanceState.getString(FILE_TYPE_CODE);
+        String bytesDownloaded = savedInstanceState.getString(BYTES_DOWNLOADED_CODE);
+        mFileSizeValue.setText(fileSize);
+        mFileTypeValue.setText(fileType);
+        mBytesDownloadedValue.setText(bytesDownloaded);
     }
 }

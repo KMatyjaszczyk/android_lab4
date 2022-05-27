@@ -1,144 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="10dp"
-    android:gravity="center_horizontal"
-    tools:context=".MainActivity">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <LinearLayout
-        android:id="@+id/horLinearLayoutUrl"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/textViewUrl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/textViewUrl" />
-
-        <EditText
-            android:id="@+id/editTextUrl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:ems="10"
-            android:inputType="textMultiLine"
-            android:text="@string/exampleResourceUrl" />
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/buttonReceiveInformation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/buttonReceiveInformation" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="#c0c0c0"/>
-
-    <LinearLayout
-        android:id="@+id/verLinearLayoutFileInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:gravity="center_horizontal"
+        tools:context=".MainActivity">
 
         <LinearLayout
-            android:id="@+id/horLinearLayoutFileSize"
+            android:id="@+id/horLinearLayoutUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textViewUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/textViewUrl" />
+
+            <EditText
+                android:id="@+id/editTextUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:ems="10"
+                android:inputType="textMultiLine"
+                android:text="@string/exampleResourceUrl" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/buttonReceiveInformation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonReceiveInformation" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="#c0c0c0"/>
+
+        <LinearLayout
+            android:id="@+id/verLinearLayoutFileInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/horLinearLayoutFileSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textViewFileSizeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/textViewFileSize" />
+
+                <TextView
+                    android:id="@+id/textViewFileSizeValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="20sp"
+                    android:text="@string/_0" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/horLinearLayoutFileType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textViewFileTypeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/textViewFileType" />
+
+                <TextView
+                    android:id="@+id/textViewFileTypeValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="20sp"
+                    android:text="@string/_0" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="#c0c0c0"/>
+
+        <Button
+            android:id="@+id/buttonDownloadFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonDownloadFile" />
+
+        <LinearLayout
+            android:id="@+id/horLinearLayoutBytesDownloaded"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/textViewFileSizeLabel"
+                android:id="@+id/textViewBytesDownloadedLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/textViewFileSize" />
+                android:text="@string/textViewBytesDownloaded" />
 
             <TextView
-                android:id="@+id/textViewFileSizeValue"
+                android:id="@+id/textViewBytesDownloadedValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="20sp"
                 android:text="@string/_0" />
-
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/horLinearLayoutFileType"
+        <ProgressBar
+            android:id="@+id/progressBarBytesDownloaded"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginTop="20dp"/>
 
-            <TextView
-                android:id="@+id/textViewFileTypeLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/textViewFileType" />
-
-            <TextView
-                android:id="@+id/textViewFileTypeValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="20sp"
-                android:text="@string/_0" />
-        </LinearLayout>
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="#c0c0c0"/>
+</ScrollView>
 
-    <Button
-        android:id="@+id/buttonDownloadFile"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/buttonDownloadFile" />
-
-    <LinearLayout
-        android:id="@+id/horLinearLayoutBytesDownloaded"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/textViewBytesDownloadedLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/textViewBytesDownloaded" />
-
-        <TextView
-            android:id="@+id/textViewBytesDownloadedValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="20sp"
-            android:text="@string/_0" />
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progressBarBytesDownloaded"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"/>
-
-</LinearLayout>
